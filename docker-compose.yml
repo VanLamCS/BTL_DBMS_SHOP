@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  oracle-db:
+    image: gvenzl/oracle-xe:latest
+    container_name: oracle-db
+    ports:
+      - 1521:1521
+    env_file:
+      - .oracle.env
+    environment:
+      - ORACLE_PASSWORD=${ORACLE_PWD}
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+    
+volumes:
+  oracle-data:
