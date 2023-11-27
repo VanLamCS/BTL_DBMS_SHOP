@@ -58,7 +58,7 @@ export class UserService {
     if (!user) {
       throw new HttpException('User is not exists', HttpStatus.UNAUTHORIZED);
     }
-    const is_equal_password = bcrypt.compare(password, user.password);
+    const is_equal_password = await bcrypt.compare(password, user.password);
     if (!is_equal_password) {
       throw new HttpException(
         'Email or password is incorrect',

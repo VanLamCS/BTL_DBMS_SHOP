@@ -36,13 +36,17 @@ export class AuthService {
   }
 
   async login(loginUserDto: LoginUserDto) {
-    const user = await this.userService.findByLogin(loginUserDto);
-    const token = await this._createToken(user);
-    return {
-      email: user.email,
-      role: user.role,
-      ...token,
-    };
+    try {
+      const user = await this.userService.findByLogin(loginUserDto);
+      const token = await this._createToken(user);
+      return {
+        email: user.email,
+        role: user.role,
+        ...token,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
   async handleVerifyToken(token) {

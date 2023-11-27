@@ -17,12 +17,15 @@ import { JwtAuthGuard } from './guard/jwt.guard';
 import { RolesGuard } from './guard/role.guard';
 import { Roles } from './decorator/roles.decorator';
 import { Role } from './decorator/role';
+import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 
 @Controller('auth')
+@ApiTags('Auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @ApiBody({ type: CreateUserDto })
   async registerUser(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
     const registerData = plainToInstance(CreateUserDto, createUserDto, {
       excludeExtraneousValues: true,
@@ -31,6 +34,8 @@ export class AuthController {
   }
 
   @Post('register-admin')
+  @ApiBearerAuth()
+  @ApiBody({ type: CreateUserDto })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   async registerAdminUser(
@@ -48,6 +53,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @ApiBody({ type: LoginUserDto })
   @HttpCode(200)
   async loginUser(@Body(new ValidationPipe()) loginUserDto: LoginUserDto) {
     const loginData = plainToInstance(LoginUserDto, loginUserDto, {

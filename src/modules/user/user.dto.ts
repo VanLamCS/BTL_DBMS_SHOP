@@ -1,20 +1,24 @@
 import { IsEmail, IsEnum, IsNotEmpty, MinLength } from 'class-validator';
 import { Expose } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '../auth/decorator/role';
 
 export class CreateUserDto {
   @IsNotEmpty()
   @IsEmail()
   @Expose()
+  @ApiProperty({ example: 'vanlam@gmail.com' })
   email: string;
 
   @IsNotEmpty()
   @MinLength(6)
   @Expose()
+  @ApiProperty({ example: '******' })
   password: string;
 
   @IsNotEmpty()
   @Expose()
+  @ApiProperty({ example: 'Le Van Lam' })
   name: string;
 
   // @IsNotEmpty()
@@ -51,10 +55,12 @@ export class LoginUserDto {
   @IsNotEmpty()
   @IsEmail()
   @Expose()
+  @ApiProperty({ example: 'vanlam@gmail.com' })
   email: string;
 
   @IsNotEmpty()
   @Expose()
+  @ApiProperty({ example: '********' })
   password: string;
 }
 
@@ -71,13 +77,13 @@ export class UserDto {
   @IsNotEmpty()
   @Expose()
   password: string;
-  
+
   @IsNotEmpty()
   role: string;
 
   @IsNotEmpty()
   token: string;
-  
+
   phone: string;
   avatar: string;
   createdAt: string;
