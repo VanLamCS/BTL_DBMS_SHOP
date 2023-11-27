@@ -6,7 +6,7 @@ import {
   CreateUserWithRoleDto,
   LoginUserDto,
 } from '../user/user.dto';
-import { JwtPayload } from 'jsonwebtoken';
+import { JwtPayload } from './interfaces/jwt.interface';
 
 @Injectable()
 export class AuthService {
@@ -42,6 +42,7 @@ export class AuthService {
       return {
         email: user.email,
         role: user.role,
+        avatar: user.avatar,
         ...token,
       };
     } catch (error) {
@@ -71,7 +72,12 @@ export class AuthService {
 
   private async _createToken({ email, userId, role }) {
     const accessToken = this.jwtService.sign(
-      <JwtPayload>{ userId, email, role },
+      <JwtPayload>{
+        userId,
+        email,
+        role,
+        expiresIn: process.env.TOKEN_EXPIRES_IN,
+      },
       {
         secret: process.env.JWT_SECRET,
         expiresIn: process.env.TOKEN_EXPIRES_IN,

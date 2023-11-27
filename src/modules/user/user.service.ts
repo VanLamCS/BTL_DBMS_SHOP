@@ -75,4 +75,13 @@ export class UserService {
   async findById(userId: number) {
     return await this.userRepository.findOneBy({ userId });
   }
+
+  async updateById(userId, updateData) {
+    return await this.userRepository
+      .createQueryBuilder()
+      .update(Users)
+      .set(updateData)
+      .where('userId = :userId', { userId: userId })
+      .execute();
+  }
 }

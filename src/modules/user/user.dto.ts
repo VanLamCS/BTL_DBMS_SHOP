@@ -1,7 +1,20 @@
-import { IsEmail, IsEnum, IsNotEmpty, MinLength } from 'class-validator';
-import { Expose } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  MinLength,
+  validate,
+} from 'class-validator';
+import { Expose, plainToClass, plainToInstance } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from '../auth/decorator/role';
+
+export enum SexEnum {
+  MALE = 'male',
+  FEMALE = 'female',
+  OTHER = 'other',
+}
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -66,26 +79,90 @@ export class LoginUserDto {
 
 export class UserDto {
   @IsNotEmpty()
+  @ApiProperty({ example: 123 })
+  @Expose()
   userId: number;
 
-  @IsNotEmpty()
+  @ApiProperty({ example: 'Le Van Lam' })
+  @Expose()
   name: string;
 
-  @IsNotEmpty()
+  @ApiProperty({ example: 'vanlam@gmail.com' })
+  @Expose()
   email: string;
 
   @IsNotEmpty()
-  @Expose()
   password: string;
 
-  @IsNotEmpty()
+  @ApiProperty({ example: '0999999999' })
+  @Expose()
+  phone: string;
+
+  @ApiProperty({ type: 'enum', enum: SexEnum, example: SexEnum.MALE })
+  @Expose()
+  sex: string;
+
+  @ApiProperty({ example: '' })
+  @Expose()
+  avatar: string;
+
+  @ApiProperty({ example: '' })
+  @Expose()
+  address: string;
+
+  @ApiProperty({ example: 'customer' })
+  @Expose()
   role: string;
 
-  @IsNotEmpty()
-  token: string;
+  @ApiProperty({ example: '' })
+  @Expose()
+  createdAt: Date;
+}
 
-  phone: string;
-  avatar: string;
-  createdAt: string;
-  address: string;
+export class UpdateUserDto {
+  @ApiPropertyOptional()
+  @ApiProperty()
+  @Expose()
+  name?: string;
+
+  @ApiPropertyOptional()
+  @ApiProperty()
+  @Expose()
+  email?: string;
+
+  @ApiPropertyOptional()
+  @ApiProperty()
+  @Expose()
+  phone?: string;
+
+  @ApiPropertyOptional()
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+  })
+  @Expose()
+  avatar?: any;
+
+  @ApiPropertyOptional()
+  @ApiProperty({ type: 'enum', enum: SexEnum, example: SexEnum.MALE })
+  @Expose()
+  sex?: string;
+
+  @ApiPropertyOptional()
+  @ApiProperty()
+  @Expose()
+  address?: string;
+
+  role?: string;
+}
+
+export function cleanDto(dto) {
+  const cleanedDto = {};
+  Object.keys(dto).forEach((key) => {
+    const value = dto[key];
+    if (dto[key] !== undefined && dto[key] !== null && dto[key] !== '') {
+      cleanedDto[key] = value;
+    }
+  });
+  return cleanedDto;
 }

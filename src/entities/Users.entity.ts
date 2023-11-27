@@ -38,7 +38,7 @@ export class Users {
   @Column('varchar2', { name: 'password', nullable: true })
   password: string | null;
 
-  @Column('varchar2', { name: 'avatar', nullable: true })
+  @Column('varchar2', { name: 'avatar', nullable: true, length: 1200 })
   avatar: string | null;
 
   @Column('varchar2', { name: 'address', nullable: true })
