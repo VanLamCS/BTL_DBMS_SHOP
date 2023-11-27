@@ -1,22 +1,22 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { User } from './user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto, CreateUserWithRoleDto, LoginUserDto } from './user.dto';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { Users } from 'src/entities/Users.entity';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    @InjectRepository(Users)
+    private readonly userRepository: Repository<Users>,
   ) {}
 
-  async findOneByEmail(email: string): Promise<User | undefined> {
+  async findOneByEmail(email: string): Promise<Users | undefined> {
     return this.userRepository.findOne({ where: { email } });
   }
 
-  async createUser(createUserDto: CreateUserDto): Promise<User | undefined> {
+  async createUser(createUserDto: CreateUserDto): Promise<Users | undefined> {
     createUserDto.password = await bcrypt.hash(
       createUserDto.password,
       parseInt(process.env.HASH_SALT),
@@ -35,7 +35,7 @@ export class UserService {
 
   async createAdmin(
     createAdminDto: CreateUserWithRoleDto,
-  ): Promise<User | undefined> {
+  ): Promise<Users | undefined> {
     createAdminDto.password = await bcrypt.hash(
       createAdminDto.password,
       parseInt(process.env.HASH_SALT),

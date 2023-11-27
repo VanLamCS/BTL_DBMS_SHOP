@@ -3,10 +3,20 @@ import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DBService } from './db.service';
 import { UserModule } from '../user/user.module';
-import { User } from '../user/user.entity';
 import { AuthModule } from '../auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from '../auth/strategy/auth.strategy';
+import { Users } from 'src/entities/Users.entity';
+import { Carts } from 'src/entities/Carts.entity';
+import { Categories } from 'src/entities/Categories.entity';
+import { Collections } from 'src/entities/Collections.entity';
+import { Details } from 'src/entities/Details.entity';
+import { Images } from 'src/entities/Images.entity';
+import { Orders } from 'src/entities/Orders.entity';
+import { Products } from 'src/entities/Products.entity';
+import { Productsinorders } from 'src/entities/Productsinorders.entity';
+import { Sizes } from 'src/entities/Sizes.entity';
+import { Usershaveorders } from 'src/entities/Usershaveorders.entity';
+import { Usersratingproducts } from 'src/entities/Usersratingproducts.entity';
 
 @Module({
   imports: [
@@ -19,13 +29,26 @@ import { JwtStrategy } from '../auth/strategy/auth.strategy';
         password: configService.get('DB_PASSWORD'),
         serviceName: configService.getOrThrow('DB_SERVICE_NAME'),
         logging: true,
-        entities: [User],
+        entities: [
+          Users,
+          Carts,
+          Categories,
+          Collections,
+          Details,
+          Images,
+          Orders,
+          Products,
+          Productsinorders,
+          Sizes,
+          Usershaveorders,
+          Usersratingproducts,
+        ],
       }),
       inject: [ConfigService],
     }),
     UserModule,
     AuthModule,
-    PassportModule
+    PassportModule,
   ],
   providers: [DBService],
 })
