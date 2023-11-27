@@ -1,4 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 
 @Entity('Users') // Specify the table name if different from class name
 export class User {
@@ -12,7 +17,7 @@ export class User {
   phone: string;
 
   @Column({ length: 10, nullable: true, default: null })
-  sex: string;
+  sex: string | null;
 
   @Column({ length: 100, unique: true })
   email: string;
@@ -21,14 +26,14 @@ export class User {
   password: string;
 
   @Column({ length: 500, nullable: true })
-  avatar: string;
+  avatar: string | null;
 
   @Column({ length: 500, nullable: true })
-  address: string;
+  address: string | null;
 
   @Column({ length: 10, default: 'customer' })
   role: string;
 
-  @Column({ default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 }

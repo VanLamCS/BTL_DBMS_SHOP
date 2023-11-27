@@ -71,13 +71,13 @@ export class UserDto {
   @IsNotEmpty()
   @Expose()
   password: string;
-  
+
   @IsNotEmpty()
   role: string;
 
   @IsNotEmpty()
   token: string;
-  
+
   phone: string;
   avatar: string;
   createdAt: string;
