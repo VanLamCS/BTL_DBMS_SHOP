@@ -6,7 +6,7 @@ export class Images {
   @Column('int', { primary: true, name: 'productId' })
   productId: number;
 
-  @Column('varchar2', { primary: true, name: 'imageLink', length: 500 })
+  @Column('varchar2', { primary: true, name: 'imageLink', length: 1200 })
   imageLink: string;
 
   @ManyToOne(() => Products, (products) => products.images, {

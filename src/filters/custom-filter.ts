@@ -19,6 +19,7 @@ import {
   UnauthorizedException,
   ForbiddenException,
   NotFoundException,
+  Error,
 )
 export class CustomExceptionFilter implements ExceptionFilter {
   catch(
@@ -45,6 +46,8 @@ export class CustomExceptionFilter implements ExceptionFilter {
       status = HttpStatus.FORBIDDEN;
     } else if (exception instanceof NotFoundException) {
       status = HttpStatus.NOT_FOUND;
+    } else if (exception instanceof Error) {
+      status = HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
     response.status(status).json({

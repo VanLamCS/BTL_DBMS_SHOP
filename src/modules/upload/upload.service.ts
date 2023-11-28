@@ -19,11 +19,9 @@ export class UploadService {
     this.storage = admin.storage();
   }
 
-  async uploadImage(image: Buffer, maxSize: number = 5242880) {
+  async uploadImage(image: Express.Multer.File, maxSize: number = 5242880) {
     try {
-      if (!this._checkCondition(image, maxSize)) {
-        throw new BadRequestException('Upload image failed');
-      }
+      this._checkCondition(image, maxSize);
       const contentType = image['mimetype'];
       const originalName = image['originalname'];
       const limitLengthOfOriginalName = originalName.substring(
@@ -45,14 +43,13 @@ export class UploadService {
         action: 'read',
         expires: '03-09-2491',
       });
-      console.log(url);
       return url;
     } catch (e) {
       throw new BadRequestException(e);
     }
   }
 
-  async uploadImages(images: [Buffer], maxSize: number = 5242880) {
+  async uploadImages(images: Express.Multer.File[], maxSize: number = 5242880) {
     const uploadedUrls = [];
     for (const image of images) {
       if (!this._checkCondition(image, maxSize)) {
@@ -66,26 +63,21 @@ export class UploadService {
     return uploadedUrls;
   }
 
-  _checkCondition(image: Buffer, maxSize: number = 5242880) {
+  _checkCondition(image: Express.Multer.File, maxSize: number = 5242880) {
     try {
       if (!image) {
-        return false;
+        throw Error('Invalid image');
       }
       const contentType = image['mimetype'];
       if (!this.allowImageType.includes(contentType)) {
-        return false;
-        // throw new BadRequestException('File is not an image');
+        throw new Error('File is not an image');
       }
       if (image['size'] > maxSize) {
-        return false;
-        // throw new BadRequestException(
-        //   `Image must be smaller than ${maxSize / 1048576}MB`,
-        // );
+        throw new Error(`Image must be smaller than ${maxSize / 1048576}MB`);
       }
       return true;
     } catch (e) {
-      return false;
-      // throw new BadRequestException(e);
+      throw new Error(e);
     }
   }
 }

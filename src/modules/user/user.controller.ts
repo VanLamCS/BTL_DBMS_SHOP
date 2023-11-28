@@ -94,7 +94,7 @@ export class UserController {
   async updateProfile(
     @Body(new ValidationPipe({ always: false }))
     restBody: Partial<UpdateUserDto>,
-    @UploadedFile() avatar: Buffer,
+    @UploadedFile() avatar: Express.Multer.File,
     @Req() req,
   ) {
     try {
