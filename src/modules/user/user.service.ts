@@ -61,7 +61,7 @@ export class UserService {
     const { email, password } = loginData;
     let user = await this.userRepository.findOneBy({ email });
     if (!user) {
-      throw new HttpException('User is not exists', HttpStatus.UNAUTHORIZED);
+      throw new HttpException('Account is not exists', HttpStatus.UNAUTHORIZED);
     }
     const is_equal_password = await bcrypt.compare(password, user.password);
     if (!is_equal_password) {

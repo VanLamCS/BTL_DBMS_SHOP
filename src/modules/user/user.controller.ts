@@ -30,6 +30,7 @@ import { JwtAuthGuard } from '../auth/guard/jwt.guard';
 import { Role } from '../auth/decorator/role';
 import { RolesGuard } from '../auth/guard/role.guard';
 import { Roles } from '../auth/decorator/roles.decorator';
+import { ApiResponse } from 'src/utils/api-response';
 
 @Controller()
 @ApiTags('User')
@@ -48,11 +49,15 @@ export class UserController {
       if (isNaN(id)) {
         throw new BadRequestException();
       }
-      const user = this.userService.findById(id);
-      const userDto = plainToInstance(UserDto, user, {
-        excludeExtraneousValues: true,
-      });
-      return userDto;
+      const user = await this.userService.findById(id);
+      return ApiResponse.success(
+        {
+          user: plainToInstance(UserDto, user, {
+            excludeExtraneousValues: true,
+          }),
+        },
+        'Retrieved user successfully',
+      );
     } catch (e) {
       throw new BadRequestException();
     }
@@ -71,8 +76,12 @@ export class UserController {
       ignoreDecorators: true,
     });
     const users = await this.userService.getUsers(option);
-    return users.map((user) =>
+    const usersResponse = users.map((user) =>
       plainToInstance(UserDto, user, { excludeExtraneousValues: true }),
+    );
+    return ApiResponse.success(
+      { users: usersResponse },
+      'Retrieved users successfully',
     );
   }
 
@@ -108,7 +117,10 @@ export class UserController {
       const userUpdatedShown = plainToInstance(UserDto, userUpdated, {
         excludeExtraneousValues: true,
       });
-      return userUpdatedShown;
+      return ApiResponse.success(
+        { user: userUpdatedShown },
+        'Updated successfully',
+      );
     } catch (e) {
       throw new BadRequestException(e.message);
     }

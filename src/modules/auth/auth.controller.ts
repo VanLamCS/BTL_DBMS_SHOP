@@ -18,6 +18,7 @@ import { RolesGuard } from './guard/role.guard';
 import { Roles } from './decorator/roles.decorator';
 import { Role } from './decorator/role';
 import { ApiTags, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { ApiResponse } from 'src/utils/api-response';
 
 @Controller('auth')
 @ApiTags('Auth')
@@ -27,10 +28,15 @@ export class AuthController {
   @Post('register')
   @ApiBody({ type: CreateUserDto })
   async registerUser(@Body(new ValidationPipe()) createUserDto: CreateUserDto) {
-    const registerData = plainToInstance(CreateUserDto, createUserDto, {
-      excludeExtraneousValues: true,
-    });
-    return this.authService.register(registerData);
+    try {
+      const registerData = plainToInstance(CreateUserDto, createUserDto, {
+        excludeExtraneousValues: true,
+      });
+      const user = await this.authService.register(registerData);
+      return ApiResponse.success({ user: user }, 'Registered successfully');
+    } catch (e) {
+      throw e;
+    }
   }
 
   @Post('register-admin')
@@ -48,8 +54,8 @@ export class AuthController {
       ...registerData,
       role: Role.ADMIN,
     };
-    console.log(registerAdminData);
-    return this.authService.registerWithRole(registerAdminData);
+    const admin = await this.authService.registerWithRole(registerAdminData);
+    return ApiResponse.success({ user: admin }, 'Registered successfully');
   }
 
   @Post('login')
@@ -59,6 +65,7 @@ export class AuthController {
     const loginData = plainToInstance(LoginUserDto, loginUserDto, {
       excludeExtraneousValues: true,
     });
-    return this.authService.login(loginData);
+    const user = await this.authService.login(loginData);
+    return ApiResponse.success({ user: user }, 'Logged in successfully');
   }
 }
