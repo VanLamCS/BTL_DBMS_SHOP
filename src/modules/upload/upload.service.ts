@@ -1,12 +1,15 @@
 import * as admin from 'firebase-admin';
 import { BadRequestException, Injectable } from '@nestjs/common';
+import * as credential from '../../credentials/firebaseCredential.json';
 
 @Injectable()
 export class UploadService {
   private storage: admin.storage.Storage;
   private allowImageType = ['image/jpg', 'image/jpeg', 'image/png'];
   constructor() {
-    const serviceAccount = require('../../credentials/firebaseCredential.json');
+    const serviceAccount = <admin.ServiceAccount>{
+      ...credential,
+    };
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
