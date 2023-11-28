@@ -10,16 +10,26 @@ import {
   UseInterceptors,
   UploadedFile,
   Req,
+  Query,
+  UsePipes,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { ApiBearerAuth, ApiConsumes, ApiTags, ApiBody } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiTags,
+  ApiBody,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { SelfGuard } from '../auth/guard/self.guard';
 import { plainToInstance } from 'class-transformer';
-import { UpdateUserDto, UserDto, cleanDto } from './user.dto';
+import { GetUsersDto, UpdateUserDto, UserDto, cleanDto } from './user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadService } from '../upload/upload.service';
-import { ExceptionsHandler } from '@nestjs/core/exceptions/exceptions-handler';
 import { JwtAuthGuard } from '../auth/guard/jwt.guard';
+import { Role } from '../auth/decorator/role';
+import { RolesGuard } from '../auth/guard/role.guard';
+import { Roles } from '../auth/decorator/roles.decorator';
 
 @Controller()
 @ApiTags('User')
@@ -48,6 +58,24 @@ export class UserController {
     }
   }
 
+  @Get('users')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiQuery({ type: GetUsersDto })
+  async getUsers(
+    @Query()
+    queryOption: Partial<GetUsersDto>,
+  ) {
+    const option = plainToInstance(GetUsersDto, queryOption, {
+      ignoreDecorators: true,
+    });
+    const users = await this.userService.getUsers(option);
+    return users.map((user) =>
+      plainToInstance(UserDto, user, { excludeExtraneousValues: true }),
+    );
+  }
+
   @Put('user/profile')
   @ApiConsumes('multipart/form-data')
   @ApiBearerAuth()
@@ -58,10 +86,9 @@ export class UserController {
     @Body(new ValidationPipe({ always: false }))
     restBody: Partial<UpdateUserDto>,
     @UploadedFile() avatar: Buffer,
-    @Req() req ,
+    @Req() req,
   ) {
     try {
-      console.log(req)
       const user = req.user;
       let avatarUrl: string = '';
       if (this.uploadImageService._checkCondition(avatar)) {
@@ -71,13 +98,17 @@ export class UserController {
       if (avatarUrl) {
         cleanUpdateUserDto['avatar'] = avatarUrl;
       }
-      console.log(cleanUpdateUserDto)
+      if (Object.keys(cleanUpdateUserDto).length === 0) {
+        throw new BadRequestException('Nothing to update');
+      }
       const userUpdated = await this.userService.updateById(
         user.userId,
         cleanUpdateUserDto,
       );
-      console.log(userUpdated);
-      return userUpdated;
+      const userUpdatedShown = plainToInstance(UserDto, userUpdated, {
+        excludeExtraneousValues: true,
+      });
+      return userUpdatedShown;
     } catch (e) {
       throw new BadRequestException(e.message);
     }

@@ -1,6 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CreateUserDto, CreateUserWithRoleDto, LoginUserDto } from './user.dto';
+import {
+  CreateUserDto,
+  CreateUserWithRoleDto,
+  GetUsersDto,
+  LoginUserDto,
+} from './user.dto';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Users } from 'src/entities/Users.entity';
@@ -77,11 +82,22 @@ export class UserService {
   }
 
   async updateById(userId, updateData) {
-    return await this.userRepository
+    const updated = await this.userRepository
       .createQueryBuilder()
       .update(Users)
       .set(updateData)
       .where('userId = :userId', { userId: userId })
       .execute();
+    if (updated.affected && updated.affected > 0) {
+      return this.userRepository.findOne({ where: { userId } });
+    }
+  }
+
+  async getUsers(option: GetUsersDto): Promise<Users[]> {
+    const users = await this.userRepository.find({
+      take: option.limit,
+      skip: (option.page - 1) * option.limit,
+    });
+    return users;
   }
 }

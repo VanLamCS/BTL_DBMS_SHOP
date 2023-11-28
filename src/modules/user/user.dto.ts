@@ -1,12 +1,19 @@
 import {
   IsEmail,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsOptional,
+  IsString,
   MinLength,
   validate,
 } from 'class-validator';
-import { Expose, plainToClass, plainToInstance } from 'class-transformer';
+import {
+  Expose,
+  Transform,
+  plainToClass,
+  plainToInstance,
+} from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from '../auth/decorator/role';
 
@@ -125,8 +132,6 @@ export class UpdateUserDto {
   @Expose()
   name?: string;
 
-  @ApiPropertyOptional()
-  @ApiProperty()
   @Expose()
   email?: string;
 
@@ -154,6 +159,26 @@ export class UpdateUserDto {
   address?: string;
 
   role?: string;
+}
+
+export class GetUsersDto {
+  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsInt()
+  @Expose()
+  page: number;
+
+  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsInt()
+  @Expose()
+  limit: number;
+
+  constructor(partial: Partial<GetUsersDto>) {
+    Object.assign(this, partial);
+    this.page = partial?.page || 1;
+    this.limit = partial?.limit || 24;
+  }
 }
 
 export function cleanDto(dto) {
