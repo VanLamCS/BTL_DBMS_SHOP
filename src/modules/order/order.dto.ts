@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayMinSize,
   IsArray,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsString,
@@ -57,4 +58,17 @@ export class CreateOrderDto {
 
   userId: number;
   status: OrderStatus;
+}
+
+export class UpdateStatusOrderDto {
+  @ApiProperty({
+    type: 'enum',
+    enum: OrderStatus,
+    example: OrderStatus.PENDING,
+  })
+  @IsEnum(OrderStatus, { message: 'Status invalid' })
+  status: string;
+
+  @ApiProperty()
+  productId: number;
 }

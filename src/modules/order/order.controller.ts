@@ -1,7 +1,10 @@
 import {
+  BadRequestException,
   Body,
   Controller,
+  ParseEnumPipe,
   Post,
+  Put,
   Req,
   UseGuards,
   ValidationPipe,
@@ -12,7 +15,7 @@ import { RolesGuard } from '../auth/guard/role.guard';
 import { Role } from '../auth/decorator/role';
 import { Roles } from '../auth/decorator/roles.decorator';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
-import { CreateOrderDto } from './order.dto';
+import { CreateOrderDto, UpdateStatusOrderDto } from './order.dto';
 import { OrderStatus } from 'src/constants/consts';
 import { ApiResponse } from 'src/utils/api-response';
 
@@ -36,5 +39,22 @@ export class OrderController {
     console.log(createOrderDto);
     const res = await this.orderService.create(createOrderDto);
     return ApiResponse.success({ order: res }, 'Order successfully');
+  }
+
+  @Put('order/status')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBody({ type: UpdateStatusOrderDto })
+  async updateStatusOrder(
+    @Body('status', new ValidationPipe()) status: OrderStatus,
+    @Body('productId', new ValidationPipe({ transform: true }))
+    orderId: number,
+  ) {
+    if (!Object.values(OrderStatus).includes(status as OrderStatus)) {
+      throw new BadRequestException('Status is invalid');
+    }
+    const res = await this.orderService.updateOrderStatus(orderId, status);
+    return ApiResponse.success({ order: res }, 'Updated successfully');
   }
 }

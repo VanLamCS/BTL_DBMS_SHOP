@@ -6,6 +6,7 @@ import { Orders } from 'src/entities/Orders.entity';
 import { Products } from 'src/entities/Products.entity';
 import { Sizes } from 'src/entities/Sizes.entity';
 import { Productsinorders } from 'src/entities/Productsinorders.entity';
+import { OrderStatus } from 'src/constants/consts';
 
 @Injectable()
 export class OrderService {
@@ -121,5 +122,15 @@ export class OrderService {
       }
     }
     return arrayPros;
+  }
+
+  async updateOrderStatus(orderId: number, status: OrderStatus) {
+    const order = await this.orderRepository.findOne({ where: { orderId } });
+    if (!order) {
+      throw new BadRequestException('Order is invalid');
+    }
+    order.status = status;
+    const updated = this.orderRepository.save(order);
+    return updated;
   }
 }
