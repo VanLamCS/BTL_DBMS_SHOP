@@ -1,19 +1,5 @@
-import {
-  IsEmail,
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MinLength,
-  validate,
-} from 'class-validator';
-import {
-  Expose,
-  Transform,
-  plainToClass,
-  plainToInstance,
-} from 'class-transformer';
+import { IsEmail, IsEnum, IsInt, IsNotEmpty, MinLength } from 'class-validator';
+import { Expose } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Role } from '../auth/decorator/role';
 

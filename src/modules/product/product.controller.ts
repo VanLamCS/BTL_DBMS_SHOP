@@ -9,7 +9,6 @@ import {
   Post,
   Put,
   Query,
-  Req,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -29,11 +28,15 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProductService } from './product.service';
 import { ApiResponse } from 'src/utils/api-response';
+import { RatingService } from '../rating/rating.service';
 
 @ApiTags('Product')
 @Controller()
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+  constructor(
+    private readonly productService: ProductService,
+    private readonly ratingService: RatingService,
+  ) {}
 
   @Post('product')
   @ApiBearerAuth()
@@ -132,6 +135,7 @@ export class ProductController {
     productId: number,
   ) {
     const res = await this.productService.getProduct(productId);
+    const avgStar = await this.ratingService.getAvgStar(productId);
     if (!res) {
       throw new BadRequestException('Product invalid');
     }
@@ -140,6 +144,7 @@ export class ProductController {
       imageArr.push(image.imageLink);
     });
     res.images = imageArr;
+    res['averageStar'] = avgStar;
     return ApiResponse.success(
       { product: res },
       'Retrieved product successfully',

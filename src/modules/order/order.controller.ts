@@ -4,7 +4,6 @@ import {
   Controller,
   Get,
   Param,
-  ParseEnumPipe,
   Post,
   Put,
   Query,
@@ -17,7 +16,7 @@ import { JwtAuthGuard } from '../auth/guard/jwt.guard';
 import { RolesGuard } from '../auth/guard/role.guard';
 import { Role } from '../auth/decorator/role';
 import { Roles } from '../auth/decorator/roles.decorator';
-import { ApiBearerAuth, ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import {
   CreateOrderDto,
   GetMyOrdersDto,
@@ -25,7 +24,6 @@ import {
 } from './order.dto';
 import { OrderStatus } from 'src/constants/consts';
 import { ApiResponse } from 'src/utils/api-response';
-import { SelfGuard } from '../auth/guard/self.guard';
 
 @ApiTags('Order')
 @Controller()

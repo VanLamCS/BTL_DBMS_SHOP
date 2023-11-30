@@ -20,6 +20,7 @@ import { Usersratingproducts } from 'src/entities/Usersratingproducts.entity';
 import { ProductModule } from '../product/product.module';
 import { OrderModule } from '../order/order.module';
 import { CartModule } from '../cart/cart.module';
+import { RatingModule } from '../rating/rating.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { CartModule } from '../cart/cart.module';
     ProductModule,
     OrderModule,
     CartModule,
+    RatingModule,
     PassportModule,
   ],
   providers: [DBService],

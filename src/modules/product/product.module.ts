@@ -6,10 +6,10 @@ import { Products } from 'src/entities/Products.entity';
 import { Sizes } from 'src/entities/Sizes.entity';
 import { Images } from 'src/entities/Images.entity';
 import { UploadModule } from '../upload/upload.module';
-import { JwtStrategy } from '../auth/strategy/auth.strategy';
+import { RatingModule } from '../rating/rating.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Products, Sizes, Images]), UploadModule],
+  imports: [TypeOrmModule.forFeature([Products, Sizes, Images]), UploadModule, RatingModule],
   controllers: [ProductController],
   providers: [ProductService],
   exports: [ProductService],

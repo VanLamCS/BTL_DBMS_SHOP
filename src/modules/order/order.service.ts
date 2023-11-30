@@ -5,7 +5,7 @@ import {
   ProductIdAndQuantityDto,
 } from './order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Orders } from 'src/entities/Orders.entity';
 import { Products } from 'src/entities/Products.entity';
 import { Sizes } from 'src/entities/Sizes.entity';
@@ -22,10 +22,10 @@ export class OrderService {
     private readonly orderRepository: Repository<Orders>,
     @InjectRepository(Products)
     private readonly productRepository: Repository<Products>,
-    @InjectRepository(Sizes)
-    private readonly sizeRepository: Repository<Sizes>,
-    @InjectRepository(Productsinorders)
-    private readonly productsinorderRepository: Repository<Productsinorders>,
+    // @InjectRepository(Sizes)
+    // private readonly sizeRepository: Repository<Sizes>,
+    // @InjectRepository(Productsinorders)
+    // private readonly productsinorderRepository: Repository<Productsinorders>,
     @InjectRepository(Usershaveorders)
     private readonly usershaveorderRepository: Repository<Usershaveorders>,
     @InjectRepository(Users)

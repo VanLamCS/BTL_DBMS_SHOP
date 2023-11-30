@@ -11,7 +11,6 @@ import {
   UploadedFile,
   Req,
   Query,
-  UsePipes,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {

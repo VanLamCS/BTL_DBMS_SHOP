@@ -11,7 +11,7 @@ import {
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { AddToCartDto, GetMyCartDto } from './cart.dto';
 import { JwtAuthGuard } from '../auth/guard/jwt.guard';
 import { RolesGuard } from '../auth/guard/role.guard';
@@ -44,21 +44,23 @@ export class CartController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.CUSTOMER)
-  @ApiQuery({ type: GetMyCartDto })
   async getMyCart(
     @Req() req: any,
-    @Query('limit', new ValidationPipe({ transform: true })) limit: number,
-    @Query('page', new ValidationPipe({ transform: true })) page: number,
+    @Query()
+    qr: GetMyCartDto,
   ) {
-    console.log(limit, page);
     const userId = req.user.userId;
-    if (!limit || limit < 0) {
-      limit = 24;
+    if (!qr.limit || qr.limit < 0) {
+      qr.limit = 24;
     }
-    if (!page || page < 1) {
-      page = 1;
+    if (!qr.page || qr.page < 1) {
+      qr.page = 1;
     }
-    const items = await this.cartService.getManyByUserId(userId, limit, page);
+    const items = await this.cartService.getManyByUserId(
+      userId,
+      qr.limit,
+      qr.page,
+    );
     return ApiResponse.success(
       { items: items.items, count: items.count },
       'Retrieved successfully',

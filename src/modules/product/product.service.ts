@@ -3,11 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Products } from 'src/entities/Products.entity';
 import { Sizes } from 'src/entities/Sizes.entity';
 import { Repository } from 'typeorm';
-import {
-  CreateProductDto,
-  GetProductsDto,
-  SizeDto,
-} from './product.dto';
+import { CreateProductDto, GetProductsDto, SizeDto } from './product.dto';
 import { Images } from 'src/entities/Images.entity';
 import { UploadService } from '../upload/upload.service';
 
