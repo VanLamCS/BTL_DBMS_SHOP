@@ -5,9 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Products } from 'src/entities/Products.entity';
 import { Sizes } from 'src/entities/Sizes.entity';
 import { Images } from 'src/entities/Images.entity';
-import { UploadService } from '../upload/upload.service';
-import { JwtStrategy } from '../auth/strategy/auth.strategy';
 import { UploadModule } from '../upload/upload.module';
+import { JwtStrategy } from '../auth/strategy/auth.strategy';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Products, Sizes, Images]), UploadModule],

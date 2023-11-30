@@ -3,7 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Products } from 'src/entities/Products.entity';
 import { Sizes } from 'src/entities/Sizes.entity';
 import { Repository } from 'typeorm';
-import { CreateProductDto, GetProductsDto, SizeDto } from './product.dto';
+import {
+  CreateProductDto,
+  GetProductsDto,
+  SizeDto,
+} from './product.dto';
 import { Images } from 'src/entities/Images.entity';
 import { UploadService } from '../upload/upload.service';
 
@@ -192,5 +196,78 @@ export class ProductService {
       .set({ deleted: 0 })
       .where('productId = :productId', { productId })
       .execute();
+  }
+
+  async updateProduct(
+    productId: number | null,
+    images: Express.Multer.File[] | null,
+    sizes: SizeDto[] | null,
+    name: string | null,
+    description: string | null,
+    fieldsUpdate: Array<string>,
+  ) {
+    const entityManager = this.productRepository.manager;
+    const product = await entityManager.findOne(Products, {
+      where: { productId },
+    });
+    if (!product) {
+      throw new BadRequestException('Product is invalid');
+    }
+    const result = await entityManager.transaction(
+      async (transactionEntityManager) => {
+        let imagesUploaded = [];
+        // Old info
+        const existedImages = await transactionEntityManager.find(Images, {
+          where: { productId },
+        });
+        const existedSizes = await transactionEntityManager.find(Sizes, {
+          where: { productId },
+        });
+        const res = {
+          product: product,
+          images: existedImages,
+          sizes: existedSizes,
+        };
+
+        if (fieldsUpdate.includes('images')) {
+          imagesUploaded = await this.uploadService.uploadImages(images);
+          await transactionEntityManager.remove(existedImages);
+          const imagesSaved: Images[] = [];
+          for (const image of imagesUploaded) {
+            const newImage = await transactionEntityManager.create(Images, {
+              productId: productId,
+              imageLink: image,
+            });
+            const imageSaved = await transactionEntityManager.save(newImage);
+            imagesSaved.push(imageSaved);
+          }
+          res.images = imagesSaved;
+        }
+        if (fieldsUpdate.includes('name')) {
+          product.name = name;
+        }
+        if (fieldsUpdate.includes('description')) {
+          product.description = description;
+        }
+        if (fieldsUpdate.includes('sizes')) {
+          const sizesSaved: Sizes[] = [];
+          await transactionEntityManager.remove(existedSizes);
+          for (const size of sizes) {
+            const newSize = await transactionEntityManager.create(Sizes, {
+              sizeName: size.sizeName,
+              price: size.price,
+              quantity: size.quantity,
+              productId: productId,
+            });
+            const sizeSaved = await transactionEntityManager.save(newSize);
+            sizesSaved.push(sizeSaved);
+          }
+          res.sizes = sizesSaved;
+        }
+        await transactionEntityManager.save(product);
+        return res;
+      },
+    );
+    return result;
   }
 }

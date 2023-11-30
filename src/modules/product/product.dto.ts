@@ -67,7 +67,7 @@ export class CreateProductDto {
 export class GetProductsDto {
   @ApiPropertyOptional({
     type: 'enum',
-    enum: ['price', 'created'/* , 'order' */],
+    enum: ['price', 'created' /* , 'order' */],
     default: 'created',
   })
   sortBy: string;
@@ -95,4 +95,31 @@ export class GetProductsDto {
   static transformInt(value: any): number {
     return parseFloat(value);
   }
+}
+
+export class UpdateProductDto {
+  @ApiPropertyOptional()
+  @IsString()
+  name: string;
+
+  @ApiPropertyOptional()
+  @IsString()
+  description: string;
+
+  @IsArray()
+  @ApiPropertyOptional({ type: [SizeDto] })
+  @ValidateNested({ each: true })
+  @Type(() => SizeDto)
+  sizes: SizeDto[];
+
+  @ApiPropertyOptional({
+    type: 'array',
+    items: {
+      type: 'string',
+      format: 'binary',
+    },
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  images: any;
 }

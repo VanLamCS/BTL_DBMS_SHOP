@@ -5,11 +5,11 @@ import {
   Delete,
   Get,
   HttpCode,
-  HttpException,
-  HttpStatus,
   Param,
   Post,
+  Put,
   Query,
+  Req,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -20,7 +20,12 @@ import { RolesGuard } from '../auth/guard/role.guard';
 import { Roles } from '../auth/decorator/roles.decorator';
 import { Role } from '../auth/decorator/role';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { CreateProductDto, GetProductsDto, SizeDto } from './product.dto';
+import {
+  CreateProductDto,
+  GetProductsDto,
+  SizeDto,
+  UpdateProductDto,
+} from './product.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProductService } from './product.service';
 import { ApiResponse } from 'src/utils/api-response';
@@ -141,10 +146,67 @@ export class ProductController {
     );
   }
 
-  @Delete('product/:productId')
+  @Put('product/:productId')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
+  @UseInterceptors(FilesInterceptor('images'))
+  @ApiBody({ type: UpdateProductDto })
+  async updateProduct(
+    @UploadedFiles() images: Express.Multer.File[],
+    @Body() updateProductDto: UpdateProductDto,
+    @Param('productId', new ValidationPipe({ transform: true }))
+    productId: number,
+  ) {
+    const updateFields: Array<string> = [];
+
+    // Check sizes
+    let sizes = updateProductDto.sizes;
+    if (sizes) {
+      sizes = this._getSizesFromCreateProductDto(updateProductDto);
+      const checkSize = this._checkSizesType(sizes);
+      if (checkSize) {
+        updateFields.push('sizes');
+      } else {
+        throw new BadRequestException('Size is invalid');
+      }
+    }
+    // Check name
+    if (updateProductDto.name?.length > 0) {
+      if (updateProductDto.name.length > 500) {
+        throw new BadRequestException('Name is too long');
+      }
+      updateFields.push('name');
+    }
+    // Check description
+    if (updateProductDto.description?.length > 0) {
+      updateFields.push('description');
+    }
+    // Check images valid
+    if (images && images.length > 0) {
+      updateFields.push('images');
+    }
+
+    const res = await this.productService.updateProduct(
+      productId,
+      images,
+      sizes,
+      updateProductDto.name,
+      updateProductDto.description,
+      updateFields,
+    );
+    const showSizes = res.sizes.map(({ productId, ...rest }) => rest);
+    const showImages = res.images.map(({ imageLink, productId }) => imageLink);
+    const showData = { ...res.product, sizes: showSizes, images: showImages };
+
+    return ApiResponse.success({ product: showData }, 'Updated successfully');
+  }
+
+  @Delete('product/:productId')
   @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @HttpCode(200)
   async deleteProduct(
     @Param('productId', new ValidationPipe({ transform: true }))
