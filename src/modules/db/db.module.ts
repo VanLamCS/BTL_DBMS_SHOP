@@ -19,6 +19,7 @@ import { Usershaveorders } from 'src/entities/Usershaveorders.entity';
 import { Usersratingproducts } from 'src/entities/Usersratingproducts.entity';
 import { ProductModule } from '../product/product.module';
 import { OrderModule } from '../order/order.module';
+import { CartModule } from '../cart/cart.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { OrderModule } from '../order/order.module';
     UserModule,
     ProductModule,
     OrderModule,
+    CartModule,
     PassportModule,
   ],
   providers: [DBService],
