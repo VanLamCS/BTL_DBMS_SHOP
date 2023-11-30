@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Products } from 'src/entities/Products.entity';
 import { Sizes } from 'src/entities/Sizes.entity';
@@ -80,7 +80,9 @@ export class ProductService {
   async getProducts(getProductsDto: GetProductsDto) {
     try {
       let query = this.productRepository.createQueryBuilder('product');
-      query.leftJoinAndSelect('product.sizes', 'size');
+      query
+        .where('product.deleted != 1')
+        .leftJoinAndSelect('product.sizes', 'size');
       let orderBy: 'ASC' | 'DESC' = 'ASC';
       if (getProductsDto.orderBy === 'DESC') {
         orderBy = 'DESC';
@@ -146,5 +148,49 @@ export class ProductService {
     } catch (e) {
       throw new Error(e.message);
     }
+  }
+
+  async getProduct(productId: number) {
+    const query = this.productRepository.createQueryBuilder('products');
+    query
+      .where('products.productId = :productId AND products.deleted != 1', {
+        productId,
+      })
+      .leftJoinAndSelect('products.sizes', 'sizes')
+      .leftJoinAndSelect('products.images', 'images');
+    const data = await query.getOne();
+    return data;
+  }
+
+  async deleteProduct(productId: number) {
+    const checkProduct = await this.productRepository.findOne({
+      where: { productId },
+    });
+    if (!checkProduct || checkProduct.deleted === 1) {
+      throw new BadRequestException('Product invalid');
+    }
+    return await this.productRepository
+      .createQueryBuilder()
+      .update(Products)
+      .set({ deleted: 1 })
+      .where('productId = :productId', { productId })
+      .execute();
+  }
+
+  async restoreProduct(productId: number) {
+    const checkProduct = await this.productRepository.findOne({
+      where: { productId },
+    });
+    if (!checkProduct) {
+      throw new BadRequestException('Product invalid');
+    } else if (checkProduct.deleted !== 1) {
+      throw new BadRequestException('Product already exists');
+    }
+    return await this.productRepository
+      .createQueryBuilder()
+      .update(Products)
+      .set({ deleted: 0 })
+      .where('productId = :productId', { productId })
+      .execute();
   }
 }

@@ -2,7 +2,12 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  Param,
   Post,
   Query,
   UploadedFiles,
@@ -74,6 +79,29 @@ export class ProductController {
     }
   }
 
+  @Post('product/restore')
+  @ApiBearerAuth()
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBody({
+    type: 'json',
+    schema: {
+      properties: {
+        productId: {
+          type: 'number',
+        },
+      },
+    },
+  })
+  async restoreProduct(
+    @Body('productId', new ValidationPipe({ transform: true }))
+    productId: number,
+  ) {
+    await this.productService.restoreProduct(productId);
+    return ApiResponse.success({ productId }, 'Restored successfully');
+  }
+
   @Get('products')
   async getProducts(
     @Query(new ValidationPipe({ transform: true }))
@@ -87,7 +115,44 @@ export class ProductController {
       }
       product.images = imageArr;
     });
-    return res.products;
+    return ApiResponse.success(
+      { products: res.products, count: res.count },
+      'Retrieved products successfully',
+    );
+  }
+
+  @Get('product/:productId')
+  async getProduct(
+    @Param('productId', new ValidationPipe({ transform: true }))
+    productId: number,
+  ) {
+    const res = await this.productService.getProduct(productId);
+    if (!res) {
+      throw new BadRequestException('Product invalid');
+    }
+    const imageArr = [];
+    res.images.map((image) => {
+      imageArr.push(image.imageLink);
+    });
+    res.images = imageArr;
+    return ApiResponse.success(
+      { product: res },
+      'Retrieved product successfully',
+    );
+  }
+
+  @Delete('product/:productId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @HttpCode(200)
+  async deleteProduct(
+    @Param('productId', new ValidationPipe({ transform: true }))
+    productId: number,
+  ): Promise<any> {
+    console.log(productId, typeof productId);
+    await this.productService.deleteProduct(productId);
+    return ApiResponse.success({ productId }, 'Deleted');
   }
 
   private _checkSizesType(sizes) {
