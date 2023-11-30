@@ -7,6 +7,8 @@ import { Products } from 'src/entities/Products.entity';
 import { Sizes } from 'src/entities/Sizes.entity';
 import { Productsinorders } from 'src/entities/Productsinorders.entity';
 import { Usershaveorders } from 'src/entities/Usershaveorders.entity';
+import { JwtService } from '@nestjs/jwt';
+import { Users } from 'src/entities/Users.entity';
 
 @Module({
   imports: [
@@ -16,10 +18,11 @@ import { Usershaveorders } from 'src/entities/Usershaveorders.entity';
       Sizes,
       Productsinorders,
       Usershaveorders,
+      Users,
     ]),
   ],
   controllers: [OrderController],
-  providers: [OrderService],
+  providers: [OrderService, JwtService],
   exports: [OrderService],
 })
 export class OrderModule {}

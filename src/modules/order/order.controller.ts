@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   ParseEnumPipe,
   Post,
   Put,
@@ -24,6 +25,7 @@ import {
 } from './order.dto';
 import { OrderStatus } from 'src/constants/consts';
 import { ApiResponse } from 'src/utils/api-response';
+import { SelfGuard } from '../auth/guard/self.guard';
 
 @ApiTags('Order')
 @Controller()
@@ -47,7 +49,20 @@ export class OrderController {
     return ApiResponse.success({ order: res }, 'Order successfully');
   }
 
-  @Get('/my-orders')
+  @Post('order/cancel/:orderId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.CUSTOMER)
+  async cancelAnOrder(
+    @Param('orderId', new ValidationPipe({ transform: true })) orderId: number,
+    @Req() req: any,
+  ) {
+    const userId = req.user.userId;
+    const res = await this.orderService.cancelAnOrder(userId, orderId);
+    return res;
+  }
+
+  @Get('my-orders')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.CUSTOMER)
@@ -90,6 +105,38 @@ export class OrderController {
     );
   }
 
+  @Get('order/:orderId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.CUSTOMER)
+  async getDetailOrder(
+    @Param('orderId', new ValidationPipe({ transform: true })) orderId: number,
+    @Req() req: any,
+  ) {
+    const userId = req.user.userId;
+    const res = await this.orderService.getDetailOrder(userId, orderId);
+    let productsInOrder = [];
+    res.productsinorders.forEach((item) => {
+      const images = [];
+      for (const image of item.product.images) {
+        images.push(image.imageLink);
+      }
+      const product = {
+        productId: item.productId,
+        size: item.size,
+        quantity: item.quantity,
+        name: item.product.name,
+        description: item.product.description,
+        images: images,
+      };
+      productsInOrder.push(product);
+    });
+    return ApiResponse.success(
+      { order: { ...res, productsinorders: productsInOrder } },
+      'Retrieved order information successfully',
+    );
+  }
+
   @Put('order/status')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -97,7 +144,7 @@ export class OrderController {
   @ApiBody({ type: UpdateStatusOrderDto })
   async updateStatusOrder(
     @Body('status', new ValidationPipe()) status: OrderStatus,
-    @Body('productId', new ValidationPipe({ transform: true }))
+    @Body('orderId', new ValidationPipe({ transform: true }))
     orderId: number,
   ) {
     if (!Object.values(OrderStatus).includes(status as OrderStatus)) {

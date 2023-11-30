@@ -70,7 +70,7 @@ export class UpdateStatusOrderDto {
   status: string;
 
   @ApiProperty()
-  productId: number;
+  orderId: number;
 }
 
 export class GetMyOrdersDto {

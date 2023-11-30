@@ -1,17 +1,19 @@
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   CreateOrderDto,
   GetMyOrdersDto,
   ProductIdAndQuantityDto,
 } from './order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { Orders } from 'src/entities/Orders.entity';
 import { Products } from 'src/entities/Products.entity';
 import { Sizes } from 'src/entities/Sizes.entity';
 import { Productsinorders } from 'src/entities/Productsinorders.entity';
 import { OrderStatus } from 'src/constants/consts';
 import { Usershaveorders } from 'src/entities/Usershaveorders.entity';
+import { ApiResponse } from 'src/utils/api-response';
+import { Users } from 'src/entities/Users.entity';
 
 @Injectable()
 export class OrderService {
@@ -26,6 +28,8 @@ export class OrderService {
     private readonly productsinorderRepository: Repository<Productsinorders>,
     @InjectRepository(Usershaveorders)
     private readonly usershaveorderRepository: Repository<Usershaveorders>,
+    @InjectRepository(Users)
+    private readonly userRepository: Repository<Users>,
   ) {}
 
   async create(userId: number, createOrderDto: CreateOrderDto) {
@@ -167,5 +171,45 @@ export class OrderService {
       .take(options.limit)
       .getManyAndCount();
     return { orders, count };
+  }
+
+  async cancelAnOrder(userId: number, orderId: number) {
+    const orderUserHad = await this.usershaveorderRepository.findOne({
+      where: { orderId },
+    });
+    if (!orderUserHad) {
+      throw new BadRequestException("User don't have this order");
+    }
+    const order = await this.orderRepository.findOne({ where: { orderId } });
+    if (order.status === OrderStatus.CANCELED) {
+      throw new BadRequestException('This order already canceled');
+    } else if (order.status !== OrderStatus.PENDING) {
+      throw new BadRequestException("This order can't cancel");
+    }
+    order.status = OrderStatus.CANCELED;
+    const canceled = await this.orderRepository.save(order);
+    return ApiResponse.success({ order: canceled }, 'Canceled successfully');
+  }
+
+  async getDetailOrder(userId: number, orderId: number) {
+    const orderUserHad = await this.usershaveorderRepository.findOne({
+      where: { orderId, userId },
+    });
+    const user = await this.userRepository.findOne({ where: { userId } });
+    if (!user) {
+      throw new BadRequestException();
+    } else if (user.role !== 'admin') {
+      if (!orderUserHad) {
+        throw new BadRequestException("User don't have this order");
+      }
+    }
+    const order = await this.orderRepository
+      .createQueryBuilder('orders')
+      .where('orders.orderId = :orderId', { orderId })
+      .leftJoinAndSelect('orders.productsinorders', 'productsinorders')
+      .leftJoinAndSelect('productsinorders.product', 'product')
+      .leftJoinAndSelect('product.images', 'images')
+      .getOne();
+    return order;
   }
 }

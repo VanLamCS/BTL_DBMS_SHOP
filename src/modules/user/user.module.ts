@@ -3,7 +3,6 @@ import { UserService } from './user.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Users } from '../../entities/Users.entity';
 import { UserController } from './user.controller';
-import { JwtStrategy } from '../auth/strategy/auth.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { UploadModule } from '../upload/upload.module';
 
@@ -17,7 +16,7 @@ import { UploadModule } from '../upload/upload.module';
     UploadModule,
   ],
   controllers: [UserController],
-  providers: [UserService, JwtStrategy],
+  providers: [UserService],
   exports: [UserService],
 })
 export class UserModule {}
