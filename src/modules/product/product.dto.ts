@@ -1,11 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsArray,
-  IsInstance,
   IsNotEmpty,
   IsNumber,
-  IsObject,
   IsString,
   ValidateNested,
 } from 'class-validator';
@@ -33,12 +31,6 @@ export class SizeDto {
       (this.quantity = objectData.quantity),
       (this.price = objectData.price);
   }
-}
-
-export class ArraySizesDto {
-  @ApiProperty({ type: [SizeDto] })
-  @ValidateNested({ each: true })
-  sizes: [SizeDto];
 }
 
 export class CreateProductDto {
@@ -70,4 +62,37 @@ export class CreateProductDto {
   @IsNotEmpty()
   @ValidateNested({ each: true })
   images: any;
+}
+
+export class GetProductsDto {
+  @ApiPropertyOptional({
+    type: 'enum',
+    enum: ['price', 'created'/* , 'order' */],
+    default: 'created',
+  })
+  sortBy: string;
+
+  @ApiPropertyOptional({ type: 'enum', enum: ['ASC', 'DESC'], default: 'ASC' })
+  orderBy: string;
+
+  @ApiPropertyOptional({ type: 'number', minimum: 0 })
+  minPrice: number;
+
+  @ApiPropertyOptional({ type: 'number', minimum: 0 })
+  maxPrice: number;
+
+  @ApiPropertyOptional({ type: 'number', minimum: 1 })
+  page: number;
+
+  @ApiPropertyOptional({ type: 'number', minimum: 0 })
+  limit: number;
+
+  // @ApiPropertyOptional({ type: 'array', items: { type: 'string' } })
+  // categories: [string];
+  static transformFloat(value: any): number {
+    return parseFloat(value);
+  }
+  static transformInt(value: any): number {
+    return parseFloat(value);
+  }
 }

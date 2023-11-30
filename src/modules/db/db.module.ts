@@ -18,6 +18,7 @@ import { Sizes } from 'src/entities/Sizes.entity';
 import { Usershaveorders } from 'src/entities/Usershaveorders.entity';
 import { Usersratingproducts } from 'src/entities/Usersratingproducts.entity';
 import { ProductModule } from '../product/product.module';
+import { OrderModule } from '../order/order.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { ProductModule } from '../product/product.module';
     AuthModule,
     UserModule,
     ProductModule,
+    OrderModule,
     PassportModule,
   ],
   providers: [DBService],

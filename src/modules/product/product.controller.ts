@@ -4,11 +4,10 @@ import {
   Controller,
   Get,
   Post,
-  UploadedFile,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
-  UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guard/jwt.guard';
@@ -16,16 +15,17 @@ import { RolesGuard } from '../auth/guard/role.guard';
 import { Roles } from '../auth/decorator/roles.decorator';
 import { Role } from '../auth/decorator/role';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { ArraySizesDto, CreateProductDto, SizeDto } from './product.dto';
+import { CreateProductDto, GetProductsDto, SizeDto } from './product.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProductService } from './product.service';
+import { ApiResponse } from 'src/utils/api-response';
 
 @ApiTags('Product')
 @Controller()
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  @Post('product/add')
+  @Post('product')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
@@ -57,11 +57,39 @@ export class ProductController {
         sizesDto,
         images,
       );
-      console.log(res);
+      const returnData = {
+        productId: res.product.productId,
+        name: res.product.name,
+        description: res.product.description,
+        createdAt: res.product.createdAt,
+        sizes: res.sizes,
+        images: res.images.map((image) => image.imageLink),
+      };
+      return ApiResponse.success(
+        { product: returnData },
+        'Product was created!',
+      );
     } catch (e) {
       throw new BadRequestException(e.message);
     }
   }
+
+  @Get('products')
+  async getProducts(
+    @Query(new ValidationPipe({ transform: true }))
+    getProductsDto: GetProductsDto,
+  ) {
+    const res = await this.productService.getProducts(getProductsDto);
+    res.products.map((product) => {
+      const imageArr = [];
+      for (const image of product.images) {
+        imageArr.push(image.imageLink);
+      }
+      product.images = imageArr;
+    });
+    return res.products;
+  }
+
   private _checkSizesType(sizes) {
     const isOk = sizes.every((size) => {
       if (!size) return false;
