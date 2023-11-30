@@ -72,3 +72,22 @@ export class UpdateStatusOrderDto {
   @ApiProperty()
   productId: number;
 }
+
+export class GetMyOrdersDto {
+  @ApiPropertyOptional({
+    type: 'enum',
+    enum: OrderStatus,
+  })
+  status: OrderStatus;
+
+  @ApiPropertyOptional({
+    type: 'enum',
+    enum: ['ASC', 'DESC'],
+  })
+  orderBy: string;
+
+  @ApiPropertyOptional()
+  limit: number;
+  @ApiPropertyOptional()
+  page: number;
+}

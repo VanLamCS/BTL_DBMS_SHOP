@@ -2,9 +2,11 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   ParseEnumPipe,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
   ValidationPipe,
@@ -14,8 +16,12 @@ import { JwtAuthGuard } from '../auth/guard/jwt.guard';
 import { RolesGuard } from '../auth/guard/role.guard';
 import { Role } from '../auth/decorator/role';
 import { Roles } from '../auth/decorator/roles.decorator';
-import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
-import { CreateOrderDto, UpdateStatusOrderDto } from './order.dto';
+import { ApiBearerAuth, ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  CreateOrderDto,
+  GetMyOrdersDto,
+  UpdateStatusOrderDto,
+} from './order.dto';
 import { OrderStatus } from 'src/constants/consts';
 import { ApiResponse } from 'src/utils/api-response';
 
@@ -37,8 +43,51 @@ export class OrderController {
     createOrderDto.userId = user.userId;
     createOrderDto.status = OrderStatus.PENDING;
     console.log(createOrderDto);
-    const res = await this.orderService.create(createOrderDto);
+    const res = await this.orderService.create(user.userId, createOrderDto);
     return ApiResponse.success({ order: res }, 'Order successfully');
+  }
+
+  @Get('/my-orders')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.CUSTOMER)
+  async getMyOrders(
+    @Req() req: any,
+    @Query(new ValidationPipe({ transform: true }))
+    getMyOrdersDto: GetMyOrdersDto,
+  ) {
+    const user = req.user;
+    getMyOrdersDto.limit = getMyOrdersDto?.limit
+      ? typeof getMyOrdersDto.limit !== 'number'
+        ? parseInt(getMyOrdersDto.limit)
+        : 24
+      : 24;
+    getMyOrdersDto.page = getMyOrdersDto?.page
+      ? typeof getMyOrdersDto.page !== 'number'
+        ? parseInt(getMyOrdersDto.page)
+        : 1
+      : 1;
+    if (getMyOrdersDto.limit < 0) {
+      getMyOrdersDto.limit = 24;
+    }
+    if (getMyOrdersDto.page < 1) {
+      getMyOrdersDto.page = 1;
+    }
+    if (!['ASC', 'DESC'].includes(getMyOrdersDto.orderBy)) {
+      getMyOrdersDto.orderBy = 'DESC';
+    }
+    const data = await this.orderService.getOrdersOfSomeone(
+      user.userId,
+      getMyOrdersDto,
+    );
+    const orders = data.orders.map((item) => {
+      const { order, ...rest } = item;
+      return order;
+    });
+    return ApiResponse.success(
+      { orders: orders, count: data.count },
+      'Retrieved orders successfully',
+    );
   }
 
   @Put('order/status')

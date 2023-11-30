@@ -1,5 +1,9 @@
 import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateOrderDto, ProductIdAndQuantityDto } from './order.dto';
+import {
+  CreateOrderDto,
+  GetMyOrdersDto,
+  ProductIdAndQuantityDto,
+} from './order.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Orders } from 'src/entities/Orders.entity';
@@ -7,6 +11,7 @@ import { Products } from 'src/entities/Products.entity';
 import { Sizes } from 'src/entities/Sizes.entity';
 import { Productsinorders } from 'src/entities/Productsinorders.entity';
 import { OrderStatus } from 'src/constants/consts';
+import { Usershaveorders } from 'src/entities/Usershaveorders.entity';
 
 @Injectable()
 export class OrderService {
@@ -19,9 +24,11 @@ export class OrderService {
     private readonly sizeRepository: Repository<Sizes>,
     @InjectRepository(Productsinorders)
     private readonly productsinorderRepository: Repository<Productsinorders>,
+    @InjectRepository(Usershaveorders)
+    private readonly usershaveorderRepository: Repository<Usershaveorders>,
   ) {}
 
-  async create(createOrderDto: CreateOrderDto) {
+  async create(userId: number, createOrderDto: CreateOrderDto) {
     const arrayPros = await this._checkProductsAvailable(
       createOrderDto.products,
     );
@@ -30,9 +37,7 @@ export class OrderService {
     for (const p of arrayPros) {
       cost += p.price * p.quantityPurchased;
     }
-
     const entityManager = this.orderRepository.manager;
-
     const result = await entityManager.transaction(
       async (transactionEntityManager) => {
         const newOrder = this.orderRepository.create({
@@ -70,6 +75,12 @@ export class OrderService {
           productsInOrder.push(newPIO);
         }
         await transactionEntityManager.save(Productsinorders, productsInOrder);
+
+        const newUserHaveOrder = this.usershaveorderRepository.create({
+          userId: userId,
+          orderId: savedOrder.orderId,
+        });
+        await transactionEntityManager.save(Usershaveorders, newUserHaveOrder);
 
         return savedOrder;
       },
@@ -132,5 +143,29 @@ export class OrderService {
     order.status = status;
     const updated = this.orderRepository.save(order);
     return updated;
+  }
+
+  async getOrdersOfSomeone(userId: number, options: GetMyOrdersDto) {
+    let statuses = [
+      OrderStatus.PENDING,
+      OrderStatus.ACCEPTED,
+      OrderStatus.SHIPPING,
+      OrderStatus.DONE,
+      OrderStatus.CANCELED,
+    ];
+    if (statuses.includes(options.status)) {
+      statuses = [options.status];
+    }
+    const skip = (options.page - 1) * options.limit;
+    const [orders, count] = await this.usershaveorderRepository
+      .createQueryBuilder('usershaveorders')
+      .where('usershaveorders.userId = :userId', { userId: userId })
+      .leftJoinAndSelect('usershaveorders.order', 'orders')
+      .andWhere('orders.status IN (:...statuses)', { statuses: statuses })
+      .orderBy('orders.orderId', options.orderBy === 'ASC' ? 'ASC' : 'DESC')
+      .skip(skip)
+      .take(options.limit)
+      .getManyAndCount();
+    return { orders, count };
   }
 }
