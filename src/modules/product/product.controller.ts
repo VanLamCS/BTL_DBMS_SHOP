@@ -251,11 +251,16 @@ export class ProductController {
   }
   private _getSizesFromCreateProductDto(createProductDto: CreateProductDto) {
     try {
-      const sizesStr = createProductDto.sizes;
+      const sizesStr = createProductDto.sizes + '';
       if (!sizesStr) {
         throw new BadRequestException('Sizes must not be empty');
       }
-      const sizesArr = JSON.parse('[' + sizesStr + ']');
+      let sizesArr = null;
+      if(sizesStr[0] === '[') {
+        sizesArr = JSON.parse(sizesStr)
+      } else {
+        sizesArr = JSON.parse('[' + sizesStr + ']');
+      }
       return sizesArr;
     } catch (error) {
       throw new BadRequestException(error.message);
