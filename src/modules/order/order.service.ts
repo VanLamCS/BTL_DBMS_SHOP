@@ -173,6 +173,28 @@ export class OrderService {
     return { orders, count };
   }
 
+  async getOrders(options: GetMyOrdersDto) {
+    let statuses = [
+      OrderStatus.PENDING,
+      OrderStatus.ACCEPTED,
+      OrderStatus.SHIPPING,
+      OrderStatus.DONE,
+      OrderStatus.CANCELED,
+    ];
+    if (statuses.includes(options.status)) {
+      statuses = [options.status];
+    }
+    const skip = (options.page - 1) * options.limit;
+    const [orders, count] = await this.orderRepository
+      .createQueryBuilder('orders')
+      .where('orders.status IN (:...statuses)', { statuses: statuses })
+      .orderBy('orders.orderId', options.orderBy === 'ASC' ? 'ASC' : 'DESC')
+      .skip(skip)
+      .take(options.limit)
+      .getManyAndCount();
+    return { orders, count };
+  }
+
   async cancelAnOrder(userId: number, orderId: number) {
     const orderUserHad = await this.usershaveorderRepository.findOne({
       where: { orderId },

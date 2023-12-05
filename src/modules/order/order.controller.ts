@@ -60,6 +60,38 @@ export class OrderController {
     return res;
   }
 
+  @Get('orders')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  async getOrders(
+    @Req() req: any,
+    @Query(new ValidationPipe({ transform: true }))
+    getOrdersDto: GetMyOrdersDto,
+  ) {
+    getOrdersDto.limit = getOrdersDto?.limit
+      ? typeof getOrdersDto.limit !== 'number'
+        ? parseInt(getOrdersDto.limit)
+        : 24
+      : 24;
+    getOrdersDto.page = getOrdersDto?.page
+      ? typeof getOrdersDto.page !== 'number'
+        ? parseInt(getOrdersDto.page)
+        : 1
+      : 1;
+    if (getOrdersDto.limit < 0) {
+      getOrdersDto.limit = 24;
+    }
+    if (getOrdersDto.page < 1) {
+      getOrdersDto.page = 1;
+    }
+    if (!['ASC', 'DESC'].includes(getOrdersDto.orderBy)) {
+      getOrdersDto.orderBy = 'DESC';
+    }
+    const data = await this.orderService.getOrders(getOrdersDto);
+    return ApiResponse.success(data, 'Retrieved successfully');
+  }
+
   @Get('my-orders')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
