@@ -41,6 +41,7 @@ export class AuthService {
       const user = await this.userService.findByLogin(loginUserDto);
       const token = await this._createToken(user);
       return {
+        userId: user.userId,
         email: user.email,
         role: user.role,
         avatar: user.avatar,
