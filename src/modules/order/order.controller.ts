@@ -151,12 +151,14 @@ export class OrderController {
       for (const image of item.product.images) {
         images.push(image.imageLink);
       }
+      let productPrice = item.product.sizes[0].price * item.quantity;
       const product = {
         productId: item.productId,
         size: item.size,
         quantity: item.quantity,
         name: item.product.name,
         description: item.product.description,
+        price: productPrice,
         images: images,
       };
       productsInOrder.push(product);
