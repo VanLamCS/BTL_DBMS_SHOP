@@ -15,10 +15,8 @@ export class CartService {
   ) {}
 
   async add(userId: number, addToCartDto: AddToCartDto) {
-    // Check exists
     const size = await this.sizeRepository.findOne({
       where: { sizeName: addToCartDto.size, productId: addToCartDto.productId },
-      // Lười kiểm tra xem dã bị xoá chưa :vv
     });
     if (!size) {
       throw new BadRequestException('Product is not exists');
@@ -42,10 +40,25 @@ export class CartService {
       .skip(skip)
       .take(limit)
       .getManyAndCount();
-    return {items, count};
+    return { items, count };
   }
 
   async remove(userId: number, cartId: number) {
-    return await this.cartRepository.delete({userId: userId, cartId: cartId})
+    return await this.cartRepository.delete({ userId: userId, cartId: cartId });
+  }
+
+  async update(userId: number, cartId: number, quantity: number) {
+    const oldData = await this.cartRepository.findOne({
+      where: { cartId: cartId },
+    });
+    if (!oldData) {
+      throw new BadRequestException('Cart is invalid');
+    }
+    if(oldData.userId !== userId) {
+      throw new BadRequestException()
+    }
+    oldData.quantity = quantity;
+    this.cartRepository.save(oldData);
+    return oldData;
   }
 }

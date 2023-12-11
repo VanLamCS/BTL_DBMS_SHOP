@@ -233,7 +233,6 @@ export class OrderService {
       .leftJoinAndSelect('product.images', 'images')
       .leftJoinAndSelect('product.sizes', 'sizes').andWhere('sizes.sizeName = productsinorders.size')
       .getOne();
-      console.log(order)
     return order;
   }
 }

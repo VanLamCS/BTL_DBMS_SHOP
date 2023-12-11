@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -12,7 +13,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
-import { AddToCartDto, GetMyCartDto } from './cart.dto';
+import { AddToCartDto, GetMyCartDto, UpdateCartDto } from './cart.dto';
 import { JwtAuthGuard } from '../auth/guard/jwt.guard';
 import { RolesGuard } from '../auth/guard/role.guard';
 import { Roles } from '../auth/decorator/roles.decorator';
@@ -65,6 +66,25 @@ export class CartController {
       { items: items.items, count: items.count },
       'Retrieved successfully',
     );
+  }
+
+  @Patch('cart/update-quantity/:cartId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.CUSTOMER)
+  @ApiBody({ type: UpdateCartDto })
+  async updateCartQuantity(
+    @Body(new ValidationPipe()) updateDto: UpdateCartDto,
+    @Param('cartId', new ValidationPipe({ transform: true })) cartId: number,
+    @Req() req: any,
+  ) {
+    const userId = req.user.userId;
+    const res = await this.cartService.update(
+      userId,
+      cartId,
+      updateDto.quantity,
+    );
+    return res;
   }
 
   @Delete('cart/:cartId')

@@ -28,3 +28,10 @@ export class GetMyCartDto {
   @Min(1)
   page: number;
 }
+
+export class UpdateCartDto {
+  @ApiProperty()
+  @IsNumber()
+  @Min(0)
+  quantity: number;
+}
